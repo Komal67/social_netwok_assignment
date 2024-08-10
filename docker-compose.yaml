@@ -1,0 +1,35 @@
+services:
+  social_network:
+    container_name: social_network
+    # build image from ./Dockerfile
+    build: .
+    # expose port 8000 to outside
+    ports: 
+      - "8000:8000"
+    environment:
+      - DATABASE_NAME=social_network
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=some_P@ssword
+      # use database from service name as host
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
+    depends_on:
+      database:
+      # wait for postgres to start accepting connections
+       condition: service_healthy
+  database:
+    container_name: database
+    image: postgres:16
+    # check for database readiness via `pg_isready` commnad
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d social_network -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=some_P@ssword
+      - POSTGRES_DB=social_network
+    
+
+    
